@@ -151,14 +151,10 @@ int main(int argc, char* argv[])
 		return show_usage(-1);
 
 	Simulation sim;
-
 	std::fstream file;
-	
 	file.open(argv[1]);
 
 	if (file.is_open() && Parser::parse_file(file, sim)) {
-	
-		sim.dump(std::cout);
 
 		file.close(); 
 		sim.start();

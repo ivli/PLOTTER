@@ -41,7 +41,6 @@ bool Parser::internal_parse_line(std::string &aLine, Simulation& aSim, bool aCfg
 			case EStop: aSim.stop(); return false; break;
 			case ESet: 
 				if (std::string::npos != line.find("motor")) {
-					std::cout << "MOTOR: " << trim(line.substr(_countof("motor"), std::string::npos)) << std::endl;
 					//TODO:
 				}
 				else if (std::string::npos != line.find("pen")) {
@@ -64,11 +63,9 @@ bool Parser::internal_parse_line(std::string &aLine, Simulation& aSim, bool aCfg
 
 				}
 				else if (std::string::npos != line.find("sim")) {
-					std::cout << "PEN: " << trim(line.substr(_countof("sim"), std::string::npos)) << std::endl;
 					//TODO:
 				}
 				else if (std::string::npos != line.find("log")) {
-					std::cout << "PEN: " << trim(line.substr(_countof("log"), std::string::npos)) << std::endl;
 					//TODO:
 				}
 				else return false;
@@ -84,14 +81,13 @@ bool Parser::internal_parse_line(std::string &aLine, Simulation& aSim, bool aCfg
 					return false;
 				break;
 
-			case EAttach: {std::cout << "found command ATTACH \n";
+			case EAttach: {
 				size_t p1 = line.find("with ");
 				size_t p2 = line.find("of ");
 				if (std::string::npos != p1 && std::string::npos != p1) {
 					std::string motor = trim(line.substr(0, p1));
 					std::string axis = trim(line.substr(motor.size() + strlen("with "), p2 - (motor.size() + strlen("with "))));
 					std::string pen = trim(line.substr(p2 + 2, std::string::npos));
-					std::cout << "MOTOR: " << motor << ", AXIS: " << axis << ", PEN:" << pen << std::endl;
 					aSim.attach(pen, motor, std::string::npos != axis.find("x") ? EAxis::X : Y);
 				}
 
