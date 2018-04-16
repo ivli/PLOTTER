@@ -1,0 +1,1 @@
+plotter.exe .\plotter.cfg
