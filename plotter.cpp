@@ -147,26 +147,30 @@ int show_usage(int aCode) {
 
 int main(int argc, char* argv[])
 {
-	if (argc != 2)
-		return show_usage(-1);
+	Simulation sim;	
+	Parser     cmd(sim);
+	if (argc == 2) { //leave a backdoor to load config from a file 
 
-	Simulation sim;
-	std::fstream file;
-	file.open(argv[1]);
+		std::fstream file;
+		file.open(argv[1]);
 
-	if (file.is_open() && Parser::parse_file(file, sim)) {
-
-		file.close(); 
-		sim.start();
-
-		bool nem = true;
-		do {
-			std::string line;
-			std::getline(std::cin, line);
-			nem = Parser::parse_line(line, sim);
-		} while (nem);
-		sim.stop();
+		if (file.is_open()) {
+			cmd.parse_file(file);
+			file.close();
+		}
 	}
+
+	bool nem = true;
+	
+	do {
+		std::string line;
+		std::cout << ">";
+		std::getline(std::cin, line);
+		nem = cmd.parse_line(line);
+		std::cout << (nem ? "OK" : "FAIL") << std::endl;		
+	} while (nem);
+
+	sim.stop();
 
 	s_sim.join();
 	s_logging.join();

@@ -17,7 +17,8 @@ inline std::string trim(const std::string &s);
 inline bool isValidName(const std::string &s);
 inline bool isValidDecimal(const std::string &s);
 
-bool Parser::internal_parse_line(std::string &aLine, Simulation& aSim, bool aCfg) {
+
+bool Parser::internal_parse_line(std::string &aLine, Simulation& aSim) {
 		std::string line = trim(aLine);
 		int i = 0;
 		
@@ -27,17 +28,17 @@ bool Parser::internal_parse_line(std::string &aLine, Simulation& aSim, bool aCfg
 			}
 		}
 
-		/**/
-		if (COMMANDS[i].FLAGS & ESim && !aCfg || COMMANDS[i].FLAGS & ECfg && aCfg) {
-		
+		if (COMMANDS[i].FLAGS & ESim && !iConfig || COMMANDS[i].FLAGS & ECfg && iConfig) {
+				
 		}
 		else 
 			return false;
+              
          //cut command away
 		line = trim(line.substr(strlen(COMMANDS[i].TEXT), std::string::npos));
 
 		switch (COMMANDS[i].CMD) {
-			case EStart: aSim.start(); break;
+		case EStart: aSim.start(); iConfig = false; break;
 			case EStop: aSim.stop(); return false; break;
 			case ESet: 
 				if (std::string::npos != line.find("motor")) {
@@ -98,13 +99,13 @@ bool Parser::internal_parse_line(std::string &aLine, Simulation& aSim, bool aCfg
 		return true;
 	}
 
-bool Parser::parse_file(std::istream & aIs, Simulation& aSim) {
+bool Parser::parse_file(std::istream & aIs) {
 		std::string line;
 		int i = 0;
 
 		while (getline(aIs, line)) {
 			try {
-				if (false == internal_parse_line(line, aSim))
+				if (false == internal_parse_line(line, iSim))
 					return false;
 			}
 			catch (std::out_of_range & ex) {
@@ -115,9 +116,9 @@ bool Parser::parse_file(std::istream & aIs, Simulation& aSim) {
 		return true;
 	}
 
-bool Parser::parse_line(std::string & aCmd, Simulation& aSim) {
+bool Parser::parse_line(std::string & aCmd) {
 	try {
-		return internal_parse_line(aCmd, aSim, false);
+		return internal_parse_line(aCmd, iSim);
 	}
 	catch (std::out_of_range & ex) {
 		std::cout << "error: " << ex.what() << std::endl;

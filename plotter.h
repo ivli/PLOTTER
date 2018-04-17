@@ -45,7 +45,7 @@ public:
 	void setTPosition(Position aP) { iTP = aP; }
 	const Position& getTPosition() const { return iP; }
 	void setVelocity(Velocity aV) { iV = aV; }
-	const Velocity& getVelocity()const { return iV; }
+	const Velocity& getVelocity() const { return iV; }
 
 private:
 	Speed        iS  = KDefaultSpeed;        //S_max_aups - maximal speed in abstract units per second(aups);
@@ -72,11 +72,11 @@ public:
 private:
 	
 private:
-	EToggle iToggle;
+	EToggle iToggle = ON;
 	const Motor *iX = nullptr;
 	const Motor *iY = nullptr;
 public: //misc
-	friend  std::ostream & operator << (std::ostream & os, const Pen& aPen);
+	friend std::ostream & operator << (std::ostream & os, const Pen& aPen);
 };
 
 /*
@@ -125,28 +125,29 @@ private:
 };
 
 /*
- * utility class implements command parsing 
- *
+ * utility class implements statefull command processor 
  */
 class Parser {
 public:
+	Parser(Simulation &aSim) :iSim(aSim) {}
 	/**
 	* implements parsing of an input stream containig a set of commands to be used thru CFG phase
 	* @param anInputStream - an input stream
-	* @param aSim - a simulation object to be altered 
 	* @return true if success otherwise false 
 	*/
-	static bool parse_file(std::istream& anInputStream, Simulation& aSim);
+	bool parse_file(std::istream& anInputStream);
 
 	/**
 	* implements parsing of an input stream containig a command for SIM phase
 	* @param anInputStream - an input stream
-	* @param aSim - a simulation object to be altered
 	* @return true if success otherwise false
 	*/
-	static bool parse_line(std::string& aCommand, Simulation& aSim);
+	bool parse_line(std::string& aCommand);
 protected:
-	static bool internal_parse_line(std::string& aLine, Simulation& aSim, bool aCfgPhase = true);
+	bool internal_parse_line(std::string& aLine, Simulation& aSim);
+private:
+	bool iConfig = true;
+	Simulation& iSim;
 };
 
 #endif
