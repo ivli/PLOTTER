@@ -26,11 +26,11 @@ enum EAxis { X, Y };
 */
 static const  Speed        KDefaultSpeed            = 1.0;
 static const  Acceleration KDefaultAcceleration     = 1.0;
-static const  Position     KDefaultTPosition        =  .0;
+static const  Position     KDefaultTPosition        = 10.0;
 static const  Position     KDefaultPosition         =  .0;
 static const  Velocity     KDefaultVelocity         =  .0;
 static const  Period       KDefaultSimulationPeriod = 0.1;
-static const  Period       KDefaultLoggingPeriod = 1.0;
+static const  Period       KDefaultLoggingPeriod    = 1.0;
 /*
 * implement Motor 
 */
@@ -43,14 +43,14 @@ public:
 	void setPosition(Position aP) { iP = aP; }
 	const Position& getPosition() const { return iP; }
 	void setTPosition(Position aP) { iTP = aP; }
-	const Position& getTPosition() const { return iP; }
+	const Position& getTPosition() const { return iTP; }
 	void setVelocity(Velocity aV) { iV = aV; }
 	const Velocity& getVelocity() const { return iV; }
 
 private:
 	Speed        iS  = KDefaultSpeed;        //S_max_aups - maximal speed in abstract units per second(aups);
 	Acceleration iA  = KDefaultAcceleration; //A_aupss - acceleration absolute value in abstract units per seconds ^ 2 (aupss);
-	Position     iTP = KDefaultPosition;     //TP - target position in abstract units(au);
+	Position     iTP = KDefaultTPosition;     //TP - target position in abstract units(au);
 	Position     iP  = KDefaultPosition;     //P - current position in abstract units(au) relative to zero point;	
 	Velocity     iV  = KDefaultVelocity;     //V - current velocity in abstract units per second(aups);
 public: //misc

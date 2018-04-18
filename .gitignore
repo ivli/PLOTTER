@@ -6,4 +6,5 @@
 *.obj
 *.opendb 
 *.sdf
+*.sln
 *.exe

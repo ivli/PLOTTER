@@ -80,7 +80,7 @@ void Simulation::toggle(const std::string& aPen, Pen::EToggle aToggle) {
 }
 
 void Simulation::start() {
-	s_sim = std::thread([=]() {
+	s_sim = std::thread([&]() {
 		while (running) {
 			iSimulationTime += iSimulationPeriod;
 			std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<long long>(iSimulationPeriod * 1000)));
@@ -88,7 +88,7 @@ void Simulation::start() {
 		}
 	});
 
-	s_logging = std::thread([=]() {
+	s_logging = std::thread([&]() {
 		while (running) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<long long>(iLoggingPeriod * 1000)));
 			doLog();			
@@ -106,16 +106,33 @@ void Simulation::setLoggingPeriod(const Period &aP) { iLoggingPeriod = aP; }
 void Simulation::doSim() {
 	std::lock_guard<std::mutex> lck(s_mtx);
 	
-	for (auto& m : iMotors) {		
-		const auto& pos = m.second.getPosition();
-		const auto& acc = m.second.getAcceleration();
-		const auto& vel = m.second.getVelocity();
-		const auto& tp  = m.second.getTPosition();
+	const double tempi = iSimulationPeriod * iSimulationPeriod / 2.; // dT^2/2 - let's save some cycles
 
-		Velocity vel2 = vel + acc * iSimulationPeriod;
-		Position pos2 = pos + vel2 + acc + iSimulationPeriod*iSimulationPeriod / 2; //TODO: can be cached 
-		m.second.setVelocity(vel2);
-		m.second.setPosition(pos2);
+	for (auto& m : iMotors) {		
+		const auto& pos_old = m.second.getPosition();
+		const auto& acc_old = m.second.getAcceleration();
+		const auto& vel_old = m.second.getVelocity();
+		const auto& tp  = m.second.getTPosition();
+        const double temp = acc_old * tempi;
+		/*
+		* a bit stright forward but shall work - while we are far from target it shall ride at full tilt and rein in a step away from TP 
+		* DISCUSSION: well that's possible to estimate we aren't more than one step far from target and save some multiplications and additions
+		* OTOH: foolowing calculation can get easily done using SIMD while this 'algo' would do it automatically with no additional effort 
+		*/
+		                         //A_aupss                              -A_aupss                                   A_aupss := 0
+		const Velocity vel[] = { vel_old + acc_old* iSimulationPeriod,  vel_old - acc_old * iSimulationPeriod, vel_old               };
+        const Position pos[] = {     pos_old + vel[0] + temp,               pos_old + vel[1] - temp,               pos_old + vel[2]  };
+		const Position dp[]  = { std::abs(tp - pos[0]),                 std::abs(tp - pos[1]),                 std::abs(tp - pos[2]) };
+	
+		int ndx = 0;
+		if (dp[1] < dp[0])
+			ndx = 1;
+		if (dp[2] < dp[ndx])
+			ndx = 2;
+
+		m.second.setVelocity(vel[ndx]);
+		m.second.setPosition(pos[ndx]);
+
 	}
 }
 
