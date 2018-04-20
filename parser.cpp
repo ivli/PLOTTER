@@ -38,11 +38,40 @@ bool Parser::internal_parse_line(std::string &aLine, Simulation& aSim) {
 		line = trim(line.substr(strlen(COMMANDS[i].TEXT), std::string::npos));
 
 		switch (COMMANDS[i].CMD) {
-		case EStart: aSim.start(); iConfig = false; break;
+			 //START
+		    case EStart: aSim.start(); iConfig = false; break;
+			 //STOP
 			case EStop: aSim.stop(); return false; break;
+			 //SET
 			case ESet: 
 				if (std::string::npos != line.find("motor")) {
-					//TODO:
+					//TODO: set motor <motor_name> S  = <S_max_aups>
+					//TODO: set motor <motor_name> A  = <A_aupss>
+					//TODO: set motor <motor_name> TP = <pos_au>
+					line = trim(line.substr(_countof("motor"), std::string::npos));
+					std::size_t p1 = line.find_first_of(' ');
+					std::size_t p2 = line.find_first_of('=');
+					std::string name = trim(line.substr(0, p1));
+					std::string para = trim(line.substr(p1, p2-p1));
+				    std::string numb = line.substr(p2+1, std::string::npos);
+					
+					if (std::string::npos == p1 || std::string::npos == p2 || !isValidDecimal(numb)) 
+						throw std::invalid_argument("malformed command: " + line);
+					
+					double arg = std::atof(numb.c_str());
+
+					if (0 == para.compare("S")) {
+						aSim.setMotorSmax(name, arg);
+					}
+					else if (0 == para.compare("A")) {
+						aSim.setMotorAupss(name, arg);
+					}
+					else if (0 == para.compare("TP")) {
+						aSim.setMotorTP(name, arg);
+					}
+					else 
+						throw std::invalid_argument("unknown command parameter: " + para);
+
 				}
 				else if (std::string::npos != line.find("pen")) {
 					line = trim(line.substr(_countof("pen"), std::string::npos));
@@ -58,18 +87,20 @@ bool Parser::internal_parse_line(std::string &aLine, Simulation& aSim) {
 						else if (std::string::npos != s1.find("off"))
 							aSim.toggle(name, Pen::EToggle::OFF);
 						else
-							return false;
-						return true;
+							throw std::invalid_argument("malformed command: " + line);					
 					}
-
+					
 				}
 				else if (std::string::npos != line.find("sim")) {
-					//TODO:
+					//TODO://TODO: set sim dT = <sim_dT_s>
+					throw std::invalid_argument("not implemented yet: " + line);
 				}
 				else if (std::string::npos != line.find("log")) {
-					//TODO:
+					//TODO://TODO: set log dT=<log_dT_s>
+					throw std::invalid_argument("not implemented yet: " + line);
 				}
-				else return false;
+				else 
+					throw std::invalid_argument("not implemented yet: " + line);
 				break;
 			case ECreate: 			
 				if (std::string::npos != line.find("motor")) {
@@ -79,7 +110,7 @@ bool Parser::internal_parse_line(std::string &aLine, Simulation& aSim) {
 					aSim.createPen(trim(line.substr(_countof("pen"), std::string::npos)));
 				}
 				else 
-					return false;
+					throw std::invalid_argument("not implemented yet: " + line);
 				break;
 
 			case EAttach: {
@@ -94,7 +125,8 @@ bool Parser::internal_parse_line(std::string &aLine, Simulation& aSim) {
 
 			} break;
 
-			default: return false; break;
+			default: 
+				throw std::invalid_argument("unknown command: " + line); break;
 			}
 		return true;
 	}
@@ -108,7 +140,11 @@ bool Parser::parse_file(std::istream & aIs) {
 				if (false == internal_parse_line(line, iSim))
 					return false;
 			}
-			catch (std::out_of_range & ex) {
+			catch (const std::out_of_range & ex) {
+				std::cout << "error: " << ex.what() << std::endl;
+				return false;
+			}
+			catch (const std::invalid_argument &ex) {
 				std::cout << "error: " << ex.what() << std::endl;
 				return false;
 			}
@@ -117,13 +153,7 @@ bool Parser::parse_file(std::istream & aIs) {
 	}
 
 bool Parser::parse_line(std::string & aCmd) {
-	try {
-		return internal_parse_line(aCmd, iSim);
-	}
-	catch (std::out_of_range & ex) {
-		std::cout << "error: " << ex.what() << std::endl;
-	}
-	return true; //suppress an error
+	return internal_parse_line(aCmd, iSim);	
 }
 
 inline std::string trim(const std::string &s) {

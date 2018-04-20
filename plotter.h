@@ -48,11 +48,11 @@ public:
 	const Velocity& getVelocity() const { return iV; }
 
 private:
-	Speed        iS  = KDefaultSpeed;        //S_max_aups - maximal speed in abstract units per second(aups);
-	Acceleration iA  = KDefaultAcceleration; //A_aupss - acceleration absolute value in abstract units per seconds ^ 2 (aupss);
+	Speed        iS  = KDefaultSpeed;         //S_max_aups - maximal speed in abstract units per second(aups);
+	Acceleration iA  = KDefaultAcceleration;  //A_aupss - acceleration absolute value in abstract units per seconds ^ 2 (aupss);
 	Position     iTP = KDefaultTPosition;     //TP - target position in abstract units(au);
-	Position     iP  = KDefaultPosition;     //P - current position in abstract units(au) relative to zero point;	
-	Velocity     iV  = KDefaultVelocity;     //V - current velocity in abstract units per second(aups);
+	Position     iP  = KDefaultPosition;      //P - current position in abstract units(au) relative to zero point;	
+	Velocity     iV  = KDefaultVelocity;      //V - current velocity in abstract units per second(aups);
 public: //misc
 	friend  std::ostream & operator << (std::ostream & os, const Motor& aMotor);
 };
@@ -107,6 +107,9 @@ public:
 	void toggle(const std::string& aPen, Pen::EToggle aToggle);	
 	void setSimulationPeriod(const Period &aP);
 	void setLoggingPeriod(const Period &aP);
+	void setMotorSmax(const std::string&  aMotor, const double anArg);
+	void setMotorAupss(const std::string& aMotor, const double anArg);
+	void setMotorTP(const std::string&    aMotor, const double anArg);
 	void start();
 	void stop();
 	void dump(std::ostream& os);
@@ -136,7 +139,6 @@ public:
 	* @return true if success otherwise false 
 	*/
 	bool parse_file(std::istream& anInputStream);
-
 	/**
 	* implements parsing of an input stream containig a command for SIM phase
 	* @param anInputStream - an input stream
@@ -144,7 +146,16 @@ public:
 	*/
 	bool parse_line(std::string& aCommand);
 protected:
-	bool internal_parse_line(std::string& aLine, Simulation& aSim);
+
+	/**
+	* implements parsing and command execution 
+	* @param aCommand - a command to handle
+	* @return true if command successed and execution shall be continued, false - if execution oughta get stopped
+	* @throws invalid_argument
+	* @throws out_of_range
+    * 
+	*/
+	bool internal_parse_line(std::string& aCommand, Simulation& aSim);
 private:
 	bool iConfig = true;
 	Simulation& iSim;

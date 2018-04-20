@@ -79,6 +79,21 @@ void Simulation::toggle(const std::string& aPen, Pen::EToggle aToggle) {
 	iPens.at(aPen).setToggle(aToggle);
 }
 
+void Simulation::setMotorSmax(const std::string&  aMotor, const double anArg) {
+	std::lock_guard<std::mutex> lck(s_mtx);
+	iMotors.at(aMotor).setSpeed(anArg);
+}
+
+void Simulation::setMotorAupss(const std::string& aMotor, const double anArg) {
+	std::lock_guard<std::mutex> lck(s_mtx);
+	iMotors.at(aMotor).setAcceleration(anArg);
+}
+
+void Simulation::setMotorTP(const std::string&    aMotor, const double anArg) {
+	std::lock_guard<std::mutex> lck(s_mtx);
+	iMotors.at(aMotor).setTPosition(anArg);
+}
+
 void Simulation::start() {
 	s_sim = std::thread([&]() {
 		while (running) {
@@ -183,8 +198,19 @@ int main(int argc, char* argv[])
 		std::string line;
 		std::cout << ">";
 		std::getline(std::cin, line);
-		nem = cmd.parse_line(line);
-		std::cout << (nem ? "OK" : "FAIL") << std::endl;		
+
+		try {
+			nem = cmd.parse_line(line);
+		}
+		
+		catch (const std::out_of_range& ex) {
+			std::cout << "error: " << ex.what() << std::endl;			
+		}
+		catch (const std::invalid_argument& ex) {
+			std::cout << "error: " << ex.what() << std::endl;			
+		}
+
+		std::cout << (nem ? "OK" : "BYE BYE...") << std::endl;		
 	} while (nem);
 
 	sim.stop();
